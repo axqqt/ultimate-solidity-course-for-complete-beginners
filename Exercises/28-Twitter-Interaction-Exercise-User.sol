@@ -10,12 +10,14 @@ contract Profile {
         string displayName;
         string bio;
     }
+
+    address tester = 0x90e608a9e92C564733b0a8771be3160199119c81;
     
     mapping(address => UserProfile) public profiles;
 
     function setProfile(string memory _displayName, string memory _bio) public {
         // CODE HERE 👇
-
+        profiles[tester] = UserProfile(_displayName,_bio);
     }
 
     function getProfile(address _user) public view returns (UserProfile memory) {

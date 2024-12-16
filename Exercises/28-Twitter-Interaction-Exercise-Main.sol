@@ -1,105 +1,49 @@
 // SPDX-License-Identifier: MIT
-
-// 2️⃣ Add a getProfile() function to the interface ✅ 
-// 3️⃣ Initialize the IProfile in the contructor ✅ 
-// HINT: don't forget to include the _profileContract address as a input 
-// 4️⃣ Create a modifier called onlyRegistered that require the msg.sender to have a profile ✅
-// HINT: use the getProfile() to get the user
-// HINT: check if displayName.length > 0 to make sure the user exists
-// 5️⃣ ADD the onlyRegistered modified to createTweet, likeTweet, and unlikeTweet function ✅
-
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 pragma solidity ^0.8.0;
 
-interface IProfile {
+contract Profile {
     struct UserProfile {
         string displayName;
         string bio;
     }
-    
-    // CODE HERE
-}
 
-contract Twitter is Ownable {
+    mapping(address => UserProfile) public profiles; // Mapping to store user profiles
+    address[] private profileAddresses; // Array to track addresses with profiles
 
-    uint16 public MAX_TWEET_LENGTH = 280;
+    // Function to set a user's profile
+    function setProfile(string memory _displayName, string memory _bio) public {
+        // Save the user's profile
+        profiles[msg.sender] = UserProfile(_displayName, _bio);
 
-    struct Tweet {
-        uint256 id;
-        address author;
-        string content;
-        uint256 timestamp;
-        uint256 likes;
-    }
-    mapping(address => Tweet[] ) public tweets;
-    // profile contract defined here 
-    IProfile profileContract;
-
-    // Define the events
-    event TweetCreated(uint256 id, address author, string content, uint256 timestamp);
-    event TweetLiked(address liker, address tweetAuthor, uint256 tweetId, uint256 newLikeCount);
-    event TweetUnliked(address unliker, address tweetAuthor, uint256 tweetId, uint256 newLikeCount);
-
-    constructor(address _profileContract) {
-       
-    }
-
-    function changeTweetLength(uint16 newTweetLength) public onlyOwner {
-        MAX_TWEET_LENGTH = newTweetLength;
-    }
-
-    function getTotalLikes(address _author) external view returns(uint) {
-        uint totalLikes;
-
-        for( uint i = 0; i < tweets[_author].length; i++){
-            totalLikes += tweets[_author][i].likes;
+        // Add the user to the profileAddresses array if they are new
+        bool exists = false;
+        for (uint256 i = 0; i < profileAddresses.length; i++) {
+            if (profileAddresses[i] == msg.sender) {
+                exists = true;
+                break;
+            }
         }
-
-        return totalLikes;
+        if (!exists) {
+            profileAddresses.push(msg.sender);
+        }
     }
 
-    function createTweet(string memory _tweet) public {
-        require(bytes(_tweet).length <= MAX_TWEET_LENGTH, "Tweet is too long bro!" );
-
-        Tweet memory newTweet = Tweet({
-            id: tweets[msg.sender].length,
-            author: msg.sender,
-            content: _tweet,
-            timestamp: block.timestamp,
-            likes: 0
-        });
-
-        tweets[msg.sender].push(newTweet);
-
-        // Emit the TweetCreated event
-        emit TweetCreated(newTweet.id, newTweet.author, newTweet.content, newTweet.timestamp);
+    // Function to get a specific user's profile
+    function getProfile(address _user) public view returns (UserProfile memory) {
+        return profiles[_user];
     }
 
-    function likeTweet(address author, uint256 id) external {  
-        require(tweets[author][id].id == id, "TWEET DOES NOT EXIST");
-
-        tweets[author][id].likes++;
-
-        // Emit the TweetLiked event
-        emit TweetLiked(msg.sender, author, id, tweets[author][id].likes);
+    // Function to get all profiles
+    function getAllProfiles() public view returns (UserProfile[] memory) {
+        UserProfile[] memory allProfiles = new UserProfile[](profileAddresses.length);
+        for (uint256 i = 0; i < profileAddresses.length; i++) {
+            allProfiles[i] = profiles[profileAddresses[i]];
+        }
+        return allProfiles;
     }
 
-    function unlikeTweet(address author, uint256 id) external {
-        require(tweets[author][id].id == id, "TWEET DOES NOT EXIST");
-        require(tweets[author][id].likes > 0, "TWEET HAS NO LIKES");
-        
-        tweets[author][id].likes--;
-
-        emit TweetUnliked(msg.sender, author, id, tweets[author][id].likes );
+    // Optional: Function to get all profile addresses
+    function getAllProfileAddresses() public view returns (address[] memory) {
+        return profileAddresses;
     }
-
-    function getTweet( uint _i) public view returns (Tweet memory) {
-        return tweets[msg.sender][_i];
-    }
-
-    function getAllTweets(address _owner) public view returns (Tweet[] memory ){
-        return tweets[_owner];
-    }
-
 }

@@ -10,6 +10,13 @@ contract Twitter {
 
     // define our struct
 
+    struct Tweet{
+        string author;
+        string content;
+        uint timestamp;
+        uint likes;
+    }
+
 
     // add our code
     mapping(address => string[] ) public tweets;

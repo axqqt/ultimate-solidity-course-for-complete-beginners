@@ -7,7 +7,27 @@ pragma solidity ^0.8.0;
 // 3️⃣ Create functions to add, subtract, and multiply to result
 // 4️⃣ Create a function to get result
 
+
 contract Calculator {
     uint256 public result;
+
+    function add(uint256 newNumb) public{
+        result = result+newNumb;
+    }
+
+    
+    function subtract(uint256 newNumb) public{
+        result = result-newNumb;
+    }
+
+
+    function multiply(uint256 newNumb) public{
+        result = result*newNumb;
+    }
+
+    function getResult() returns (uint256) public {
+        return result;
+    }
+
 
 }
